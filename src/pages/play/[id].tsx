@@ -11,7 +11,7 @@ export default function Main() {
     const [ytid, setYtid] = useState("");
     const [ytidInput, setYtidInput] = useState("");
 
-    const [socket, _] = useState(() => io("localhost:10000"))
+    const [socket, _] = useState(() => io("https://socket-io-togetube.onrender.com"))
 
     const { id } = router.query;
 
