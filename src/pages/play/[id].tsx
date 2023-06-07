@@ -12,7 +12,8 @@ export default function Main() {
     const [ytidInput, setYtidInput] = useState("");
     const [readied, setReadied] = useState(false)
 
-    const [socket, _] = useState(() => io("localhost:10000"))
+    const iohost: any = process.env.NEXT_PUBLIC_HOST
+    const [socket, _] = useState(() => io(iohost))
 
     const { id } = router.query;
 
