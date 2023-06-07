@@ -18,7 +18,19 @@ io.on("connection", (socket) => {
   socket.on('join', (room) => {
     socket.join(room);
     console.log(`Join to ${room}`)
-    io.to(room).emit("join" , data[room]);  
+    io.to(room).emit("join");  
+  })
+  socket.on("seek" , (msg) => {
+    console.log(msg)
+    switch (msg.state) {
+      case 2:
+                io.to(msg.room).emit("pause", {seek: msg.seek , ytid : msg.ytid })
+                break;
+
+            case 1:
+                io.to(msg.room).emit("play", {seek: msg.seek , ytid :  msg.ytid})
+                break;
+    }
   })
 
   socket.on('emitid' , (ytid) => {

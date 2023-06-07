@@ -10,18 +10,19 @@ export default function Main() {
     const router = useRouter();
     const [ytid, setYtid] = useState("");
     const [ytidInput, setYtidInput] = useState("");
+    const [readied, setReadied] = useState(false)
 
-    const [socket, _] = useState(() => io("https://socket-io-togetube.onrender.com"))
+    const [socket, _] = useState(() => io("localhost:10000"))
 
     const { id } = router.query;
 
     let target: any;
 
     useEffect(() => {
-        if (id == null) return;
+        if (!readied) return;
         socket.emit("join", id);
 
-    }, [id])
+    }, [readied])
 
     const opts = {
         width: "560",
@@ -38,23 +39,32 @@ export default function Main() {
         setYtid(emitytid);
     }
     const _onReady = (event: { target: any }) => {
+        event.target.playVideo()
         target = event.target;
         checkSocketCont(event.target, event.target.g);
+        setReadied(true);
     }
     const checkSocketCont = (yt: any, targetG: any) => {
         const youtube = yt;
-        socket.on("join", (msg: {
-            seek(seek: any): unknown; id: SetStateAction<string>;
-        } | null) => {
+        // socket.on("firstJoin", (msg: {
+        //     seek(seek: any): unknown; id: SetStateAction<string>;
+        // } | null) => {
+        //     console.log("join")
+        //     youtube.g = targetG;
+        //     if (msg !== null) {
+        //         setYtid(msg.id);
+        //         youtube.seekTo(msg.seek)
+        //     }
+        // })
+        socket.on("join", (msg) => {
             youtube.g = targetG;
-            if (msg !== null) {
-                setYtid(msg.id);
-                youtube.seekTo(msg.seek)
-            }
+            socket.emit("seek", { room: id, ytid: ytid, seek: youtube.getCurrentTime(), state: youtube.getPlayerState() })
         })
         socket.on("play", (msg) => {
+            console.log(msg)
             youtube.g = targetG;
             youtube.playVideo()
+            setYtid(msg.ytid)
             const playertime = youtube.getCurrentTime()
             if (Math.abs(playertime - msg.seek) > 1) {
                 youtube.seekTo(msg.seek)
@@ -63,6 +73,7 @@ export default function Main() {
         socket.on("pause", (msg) => {
             youtube.g = targetG;
             youtube.pauseVideo()
+            setYtid(msg.ytid)
             const playertime = youtube.getCurrentTime()
             if (Math.abs(playertime - msg.seek) > 1) {
                 youtube.seekTo(msg.seek)
@@ -72,11 +83,11 @@ export default function Main() {
     const _onStateChange = (event: any) => {
         switch (event.data) {
             case 2:
-                socket.emit("pause", { room: id, seek: event.target.getCurrentTime() })
+                socket.emit("pause", { room: id, seek: event.target.getCurrentTime(), ytid: ytid })
                 break;
 
             case 1:
-                socket.emit("play", { room: id, seek: event.target.getCurrentTime() })
+                socket.emit("play", { room: id, seek: event.target.getCurrentTime(), ytid: ytid })
                 break;
         }
     }
@@ -88,7 +99,9 @@ export default function Main() {
         setResult(res.items)
     }
     return <>
-        <div className='flex place-content-center md:mt-4'>
+        <p className="text-center my-2 text-lg"><span className="border-b-2 border-current">{id}</span></p>
+        <p className="text-xs text-center text-gray-500">再生が始まらない場合は、ブラウザの自動再生を許可してください。</p>
+        <div className='flex place-content-center'>
             <div className='wrap'>
                 <div className='video-container'>
                     <div className='video flex place-content-center rounded-lg'>
@@ -101,16 +114,16 @@ export default function Main() {
                 </div>
             </div>
         </div>
-        <div className="flex place-content-center my-4 gap-x-8">
+        <div className="flex flex-wrap place-content-center my-4 gap-x-8">
             <div>
                 <h1 className="text-lg">YoutubeIDから再生</h1>
                 <input type="text" placeholder="YoutubeID" className="mr-4 p-2 rounded-md border-2 outline-0" onChange={(e: any) => { setYtidInput(e.target.value) }} />
-                <button className="p-2 rounded-lg bg-gray-800 text-white" onClick={() => { EmitYtId(ytidInput); }}>YoutubeIDで再生</button>
+                <p className="my-2"><button className="p-2 rounded-lg bg-gray-800 text-white" onClick={() => { EmitYtId(ytidInput); }}>YoutubeIDで再生</button></p>
             </div>
             <div>
                 <h1 className="text-lg">検索して再生</h1>
                 <input type="text" placeholder="YoutubeID" className="mr-4 p-2 rounded-md border-2 outline-0" onChange={(e: any) => { setserachQ(e.target.value) }} />
-                <button className="p-2 rounded-lg bg-gray-800 text-white" onClick={() => { getSearch() }}>検索</button>
+                <p className="my-2"><button className="p-2 rounded-lg bg-gray-800 text-white" onClick={() => { getSearch() }}>検索</button></p>
             </div>
         </div>
         <div className="m-4">

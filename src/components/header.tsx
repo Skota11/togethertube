@@ -8,8 +8,7 @@ export default function Main() {
                 <p className="text-white underline"><Link href="/">Home</Link></p>
                 <div>
                     <ul className="flex gap-x-4">
-                        <li><Link className="text-white border-2 border-white rounded-full text-sm p-2" href="create">部屋を作る</Link></li>
-                        <li><Link className="text-white border-2 border-white rounded-full text-sm p-2" href="join">部屋に入る</Link></li>
+                        <li><Link className="text-white border-2 border-white rounded-full text-sm p-2" href="join">部屋に参加</Link></li>
                     </ul>
                 </div>
             </div>
